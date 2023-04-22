@@ -7,7 +7,7 @@ from loguru import logger
 from riotwatcher import LolWatcher
 from tqdm import tqdm
 
-from data.object import Player
+from data.object import Player, MatchInfo
 
 
 class Game:
@@ -180,19 +180,32 @@ class Game:
         else:
             return pickle.load(open("match_id_list.pkl", "rb"))
 
+    def parse_match_info(self, match_info: dict) -> MatchInfo:
+        """Parse match info
+
+        Args:
+            match_info (dict): Match info
+
+        Returns:
+            MatchInfo: Match info
+        """
+        match_info = MatchInfo(data=match_info)
+        return match_info
+    
     def fetch_all(self) -> list[str]:
         """Fetch all data
 
         Returns:
             list[str]: List of match info
         """
-        result: list[dict[str, str]] = []
+        result: list[MatchInfo] = []
         # Get players
         players = self.get_all_players()
 
         # Get match list
         match_id_list = self.get_all_maych_id(players=players)
         for match in tqdm(match_id_list):
-            match_info = self.get_match_info(match_id=match)
+            match_info_dict = self.get_match_info(match_id=match)
+            match_info = self.parse_match_info(match_info=match_info_dict)
             result.append(match_info)
         return result
