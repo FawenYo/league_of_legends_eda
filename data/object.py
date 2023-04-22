@@ -36,6 +36,7 @@ class Player:
         self.fresh_blood = self.data["freshBlood"]
         self.hot_streak = self.data["hotStreak"]
 
+
 @dataclass
 class ParticipantInfo:
     ## Champion info
@@ -110,7 +111,8 @@ class ParticipantInfo:
     item_3: int
     item_4: int
     item_5: int
-    item_6: int  
+    item_6: int
+
 
 @dataclass
 class MatchInfo:
@@ -222,11 +224,19 @@ class MatchInfo:
                 self.team_blue_dragon_first = team["objectives"]["dragon"]["first"]
                 self.team_blue_dragon_kills = team["objectives"]["dragon"]["kills"]
                 # Inhibitor
-                self.team_blue_inhibitor_first = team["objectives"]["inhibitor"]["first"]
-                self.team_blue_inhibitor_kills = team["objectives"]["inhibitor"]["kills"]
+                self.team_blue_inhibitor_first = team["objectives"]["inhibitor"][
+                    "first"
+                ]
+                self.team_blue_inhibitor_kills = team["objectives"]["inhibitor"][
+                    "kills"
+                ]
                 # Rift Herald
-                self.team_blue_rift_herald_first = team["objectives"]["riftHerald"]["first"]
-                self.team_blue_rift_herald_kills = team["objectives"]["riftHerald"]["kills"]
+                self.team_blue_rift_herald_first = team["objectives"]["riftHerald"][
+                    "first"
+                ]
+                self.team_blue_rift_herald_kills = team["objectives"]["riftHerald"][
+                    "kills"
+                ]
                 # Tower
                 self.team_blue_tower_first = team["objectives"]["tower"]["first"]
                 self.team_blue_tower_kills = team["objectives"]["tower"]["kills"]
@@ -254,15 +264,19 @@ class MatchInfo:
                 self.team_red_inhibitor_first = team["objectives"]["inhibitor"]["first"]
                 self.team_red_inhibitor_kills = team["objectives"]["inhibitor"]["kills"]
                 # Rift Herald
-                self.team_red_rift_herald_first = team["objectives"]["riftHerald"]["first"]
-                self.team_red_rift_herald_kills = team["objectives"]["riftHerald"]["kills"]
+                self.team_red_rift_herald_first = team["objectives"]["riftHerald"][
+                    "first"
+                ]
+                self.team_red_rift_herald_kills = team["objectives"]["riftHerald"][
+                    "kills"
+                ]
                 # Tower
                 self.team_red_tower_first = team["objectives"]["tower"]["first"]
                 self.team_red_tower_kills = team["objectives"]["tower"]["kills"]
                 # Win
                 if team["objectives"]["win"]:
                     self.win_team = "Red"
-    
+
         ################
         # Participants #
         ################
@@ -279,10 +293,16 @@ class MatchInfo:
                 elif participant["teamPosition"] == "MIDDLE":
                     self.tema_blue_mid = self.create_participants(participant)
                 # ADC
-                elif participant["teamPosition"] == "BOTTOM" and participant["role"] == "SOLO":
+                elif (
+                    participant["teamPosition"] == "BOTTOM"
+                    and participant["role"] == "SOLO"
+                ):
                     self.tema_blue_adc = self.create_participants(participant)
                 # Support
-                elif participant["teamPosition"] == "BOTTOM" and participant["role"] == "UTILITY":
+                elif (
+                    participant["teamPosition"] == "BOTTOM"
+                    and participant["role"] == "UTILITY"
+                ):
                     self.tema_blue_support = self.create_participants(participant)
             # Red team
             else:
@@ -296,10 +316,16 @@ class MatchInfo:
                 elif participant["teamPosition"] == "MIDDLE":
                     self.tema_red_mid = self.create_participants(participant)
                 # ADC
-                elif participant["teamPosition"] == "BOTTOM" and participant["role"] == "SOLO":
+                elif (
+                    participant["teamPosition"] == "BOTTOM"
+                    and participant["role"] == "SOLO"
+                ):
                     self.tema_red_adc = self.create_participants(participant)
                 # Support
-                elif participant["teamPosition"] == "BOTTOM" and participant["role"] == "UTILITY":
+                elif (
+                    participant["teamPosition"] == "BOTTOM"
+                    and participant["role"] == "UTILITY"
+                ):
                     self.tema_red_support = self.create_participants(participant)
 
     def create_participants(self, participant):
@@ -338,8 +364,12 @@ class MatchInfo:
             gold=participant["goldEarned"],
             total_minions_killed=participant["totalMinionsKilled"],
             neutral_minions_killed=participant["neutralMinionsKilled"],
-            total_allied_jungle_minions_killed=participant["totalAllyJungleMinionsKilled"],
-            total_enemy_jungle_minions_killed=participant["totalEnemyJungleMinionsKilled"],
+            total_allied_jungle_minions_killed=participant[
+                "totalAllyJungleMinionsKilled"
+            ],
+            total_enemy_jungle_minions_killed=participant[
+                "totalEnemyJungleMinionsKilled"
+            ],
             turret_kills=participant["turretKills"],
             turret_takedowns=participant["turretTakedowns"],
             turrent_lost=participant["turretsLost"],

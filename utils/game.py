@@ -7,7 +7,7 @@ from loguru import logger
 from riotwatcher import LolWatcher
 from tqdm import tqdm
 
-from data.object import Player, MatchInfo
+from data.object import MatchInfo, Player
 
 
 class Game:
@@ -19,8 +19,7 @@ class Game:
         self.lol_watcher = LolWatcher(os.getenv("RIOT_API_KEY"))
 
     def load_env(self) -> None:
-        """Load environment variables
-        """
+        """Load environment variables"""
         load_dotenv()
 
     def get_player_details(self, player: Player, tier: str) -> Player:
@@ -33,7 +32,9 @@ class Game:
         Returns:
             Player: Player detail information
         """
-        info = self.lol_watcher.summoner.by_account(self.player_region, player.account_id)
+        info = self.lol_watcher.summoner.by_account(
+            self.player_region, player.account_id
+        )
         if tier:
             player.tier = tier
         player.account_id = info["accountId"]
@@ -191,7 +192,7 @@ class Game:
         """
         match_info = MatchInfo(data=match_info)
         return match_info
-    
+
     def fetch_all(self) -> list[str]:
         """Fetch all data
 
