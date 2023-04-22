@@ -37,6 +37,78 @@ class Player:
         self.hot_streak = self.data["hotStreak"]
 
 @dataclass
+class ParticipantInfo:
+    ## Champion info
+    champion: str
+    level: int
+    experience: int
+    ## K/D/A
+    kills: int
+    deaths: int
+    assists: int
+    ## Damage
+    total_damage_to_champion: int
+    phisical_damage_to_champion: int
+    magic_damage_to_champion: int
+    true_damage_to_champion: int
+    total_damage_dealt: int
+    phisical_damage_dealt: int
+    magic_damage_dealt: int
+    true_damage_dealt: int
+    team_blue_largest_critical_strike: int
+    damage_building: int
+    damage_objective: int
+    ## Damage taken and healed
+    total_heal: int
+    total_damage_taken: int
+    physical_damage_taken: int
+    magic_damage_taken: int
+    true_damage_taken: int
+    damage_self_mitigated: int
+    total_shielded_on_teammate: int
+    total_heal_on_teammate: int
+    ## Vision
+    vision_score: int
+    wards_placed: int
+    wards_killed: int
+    vision_wards_bought_in_game: int
+    ## Earned gold
+    gold: int
+    total_minions_killed: int
+    total_all_jungle_minions_killed: int
+    total_allied_jungle_minions_killed: int
+    total_enemy_jungle_minions_killed: int
+    ## Other
+    turret_kills: int
+    turret_takedowns: int
+    ## CC
+    time_ccing_others: int
+    ## Kills
+    double_kills: int
+    triple_kills: int
+    quadra_kills: int
+    penta_kills: int
+    ## Ping
+    all_in_pings: int
+    bait_pings: int
+    command_pings: int
+    danger_pings: int
+    enemy_missing_pings: int
+    enemy_vision_pings: int
+    getback_pings: int
+    hold_pings: int
+    onmyway_pings: int
+    push_pings: int
+    ## Items
+    item_0: int
+    item_1: int
+    item_2: int
+    item_3: int
+    item_4: int
+    item_5: int
+    item_6: int  
+
+@dataclass
 class MatchInfo:
     match_id: str
     game_start_time: int
@@ -103,36 +175,16 @@ class MatchInfo:
     #############################
     # Champion info - Blue team #
     #############################
-    # Top
-    ## Champion info
-    team_blue_top_champion: str
-    team_blue_top_level: int
-    team_blue_top_experience: int
-    ## Stats
-    team_blue_top_kills: int
-    team_blue_top_deaths: int
-    team_blue_top_assists: int
-    team_blue_top_gold: int
-    ## Damage
-    team_blue_top_damage_building: int
-    team_blue_top_damage_objective: int
-    team_blue_top_damage_turrents: int
-    team_blue_top_phisical_damage: int
-    team_blue_top_phisical_damage_to_champion: int
-    team_blue_top_total_damage: int
-    team_blue_top_total_damage_to_champion: int
-    ## Healing
-    team_blue_top_damage_self_mitigated: int
-    team_blue_top_physical_damage_taken: int
-    team_blue_top_total_damage_taken: int
-    team_blue_top_total_shielded_on_teammate: int
-    team_blue_top_total_heal: int
-    team_blue_top_total_heal_on_teammate: int
-    ## CC
-    team_blue_top_time_ccing_others: int
-
-    ## Kills
-    team_blue_top_double_kills: int
-    team_blue_top_triple_kills: int
-    team_blue_top_quadra_kills: int
-    team_blue_top_penta_kills: int
+    tema_blue_top: ParticipantInfo
+    tema_blue_jungle: ParticipantInfo
+    tema_blue_mid: ParticipantInfo
+    tema_blue_adc: ParticipantInfo
+    tema_blue_support: ParticipantInfo
+    ############################
+    # Champion info - Red team #
+    ############################
+    tema_red_top: ParticipantInfo
+    tema_red_jungle: ParticipantInfo
+    tema_red_mid: ParticipantInfo
+    tema_red_adc: ParticipantInfo
+    tema_red_support: ParticipantInfo
