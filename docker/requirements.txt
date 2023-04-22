@@ -1,1 +1,4 @@
+loguru
+python-dotenv
 riotwatcher
+tqdm
