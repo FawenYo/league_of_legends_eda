@@ -1,5 +1,6 @@
 import os
 import pickle
+import random
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -15,8 +16,13 @@ class Game:
         self.load_env()
         self.player_region = "tw2"
         self.server_region = "sea"
-
-        self.lol_watcher = LolWatcher(os.getenv("RIOT_API_KEY"))
+        self.lol_wathers = [
+            LolWatcher(os.getenv("RIOT_API_KEY_1")),
+            LolWatcher(os.getenv("RIOT_API_KEY_2")),
+            LolWatcher(os.getenv("RIOT_API_KEY_3")),
+            LolWatcher(os.getenv("RIOT_API_KEY_4")),
+            LolWatcher(os.getenv("RIOT_API_KEY_5")),
+        ]
 
     def load_env(self) -> None:
         """Load environment variables"""
@@ -32,9 +38,8 @@ class Game:
         Returns:
             Player: Player detail information
         """
-        info = self.lol_watcher.summoner.by_account(
-            self.player_region, player.account_id
-        )
+        lol_watcher = random.choice(self.lol_wathers)
+        info = lol_watcher.summoner.by_account(self.player_region, player.account_id)
         if tier:
             player.tier = tier
         player.account_id = info["accountId"]
@@ -56,7 +61,8 @@ class Game:
         Returns:
             list[str]: List of match id
         """
-        return self.lol_watcher.match.matchlist_by_puuid(
+        lol_watcher = random.choice(self.lol_wathers)
+        return lol_watcher.match.matchlist_by_puuid(
             region=self.server_region,
             puuid=user_puuid,
             count=count,
@@ -73,9 +79,8 @@ class Game:
         Returns:
             dict: Match info
         """
-        return self.lol_watcher.match.by_id(
-            region=self.server_region, match_id=match_id
-        )
+        lol_watcher = random.choice(self.lol_wathers)
+        return lol_watcher.match.by_id(region=self.server_region, match_id=match_id)
 
     def get_league_entries(
         self, tier: str, division: Optional[str] = ""
@@ -93,26 +98,30 @@ class Game:
         if division:
             result = []
             for page_index in range(1, 6):
-                entries = self.lol_watcher.league.entries(
+                lol_watcher = random.choice(self.lol_wathers)
+                entries = lol_watcher.league.entries(
                     region=self.player_region,
                     queue="RANKED_SOLO_5x5",
                     tier=tier,
                     division=division,
                     page=page_index,
                 )
-                result += entries["entries"]
+                result += entries
             return result
 
         elif tier == "MASTER":
-            return self.lol_watcher.league.masters_by_queue(
+            lol_watcher = random.choice(self.lol_wathers)
+            return lol_watcher.league.masters_by_queue(
                 region=self.player_region, queue="RANKED_SOLO_5x5"
             )
         elif tier == "GRANDMASTER":
-            return self.lol_watcher.league.grandmaster_by_queue(
+            lol_watcher = random.choice(self.lol_wathers)
+            return lol_watcher.league.grandmaster_by_queue(
                 region=self.player_region, queue="RANKED_SOLO_5x5"
             )
         elif tier == "CHALLENGER":
-            return self.lol_watcher.league.challenger_by_queue(
+            lol_watcher = random.choice(self.lol_wathers)
+            return lol_watcher.league.challenger_by_queue(
                 region=self.player_region, queue="RANKED_SOLO_5x5"
             )
 
@@ -172,7 +181,7 @@ class Game:
         start_time: int,
         end_time: int,
         new_data: bool = True,
-    ) -> list[str]:
+    ) -> dict[str, int]:
         """Get all match id
 
         Args:
@@ -182,19 +191,20 @@ class Game:
             new_data (bool, optional): Get new data or not. Defaults to True.
 
         Returns:
-            list[str]: List of match id
+            dict[str, int]: List of match id
         """
         if new_data:
-            match_id_list = []
+            match_id_list = {}
             for player in tqdm(players):
-                match_id_list.append(
-                    self.get_match_id(
-                        user_puuid=player.puuid,
-                        start_time=start_time,
-                        end_time=end_time,
-                        count=100,
-                    )
+                player_matches = self.get_match_id(
+                    user_puuid=player.puuid,
+                    start_time=start_time,
+                    end_time=end_time,
+                    count=20,
                 )
+                for match in player_matches:
+                    if match not in match_id_list:
+                        match_id_list[match] = 1
             pickle.dump(match_id_list, open("match_id_list.pkl", "wb"))
             return match_id_list
         else:
@@ -230,7 +240,7 @@ class Game:
         match_id_list = self.get_all_match_id(
             players=players, start_time=start_time, end_time=end_time
         )
-        for match in tqdm(match_id_list):
+        for match in tqdm(match_id_list.keys()):
             match_info_dict = self.get_match_info(match_id=match)
             match_info = self.parse_match_info(match_info=match_info_dict)
             result.append(match_info)
