@@ -16,13 +16,14 @@ class Game:
         self.load_env()
         self.player_region = "tw2"
         self.server_region = "sea"
-        self.lol_wathers = [
+        self.lol_wathers: list[LolWatcher] = [
             LolWatcher(os.getenv("RIOT_API_KEY_1")),
             LolWatcher(os.getenv("RIOT_API_KEY_2")),
             LolWatcher(os.getenv("RIOT_API_KEY_3")),
             LolWatcher(os.getenv("RIOT_API_KEY_4")),
             LolWatcher(os.getenv("RIOT_API_KEY_5")),
         ]
+        self.player_watchers: dict[str, LolWatcher] = {}
 
     def load_env(self) -> None:
         """Load environment variables"""
@@ -39,7 +40,8 @@ class Game:
             Player: Player detail information
         """
         lol_watcher = random.choice(self.lol_wathers)
-        info = lol_watcher.summoner.by_account(self.player_region, player.account_id)
+        self.player_watchers[player.name] = lol_watcher
+        info = lol_watcher.summoner.by_name(self.player_region, player.name)
         if tier:
             player.tier = tier
         player.account_id = info["accountId"]
@@ -48,11 +50,12 @@ class Game:
         return player
 
     def get_match_id(
-        self, user_puuid: str, start_time: int, end_time: int, count: int
+        self, user_name: str, user_puuid: str, start_time: int, end_time: int, count: int
     ) -> list[str]:
         """Get match id
 
         Args:
+            user_name (str): Player name
             user_puuid (str): Player puuid
             start_time (int): Start time
             end_time (int): End time
@@ -61,25 +64,30 @@ class Game:
         Returns:
             list[str]: List of match id
         """
-        lol_watcher = random.choice(self.lol_wathers)
-        return lol_watcher.match.matchlist_by_puuid(
-            region=self.server_region,
-            puuid=user_puuid,
-            count=count,
-            start_time=start_time,
-            end_time=end_time,
-        )
+        try:
+            lol_watcher = self.player_watchers[user_name]
+            return lol_watcher.match.matchlist_by_puuid(
+                region=self.server_region,
+                puuid=user_puuid,
+                count=count,
+                start_time=start_time,
+                end_time=end_time,
+                type="ranked",
+            )
+        except:
+            return []
 
-    def get_match_info(self, match_id: str) -> dict:
+    def get_match_info(self, match_index: int, match_id: str) -> dict:
         """Get match info
 
         Args:
+            match_index (int): Match index
             match_id (str): Match id
 
         Returns:
             dict: Match info
         """
-        lol_watcher = random.choice(self.lol_wathers)
+        lol_watcher = self.lol_wathers[match_index % len(self.lol_wathers)]
         return lol_watcher.match.by_id(region=self.server_region, match_id=match_id)
 
     def get_league_entries(
@@ -106,6 +114,8 @@ class Game:
                     division=division,
                     page=page_index,
                 )
+                if not entries:
+                    break
                 result += entries
             return result
 
@@ -197,6 +207,7 @@ class Game:
             match_id_list = {}
             for player in tqdm(players):
                 player_matches = self.get_match_id(
+                    user_name=player.name,
                     user_puuid=player.puuid,
                     start_time=start_time,
                     end_time=end_time,
@@ -240,8 +251,11 @@ class Game:
         match_id_list = self.get_all_match_id(
             players=players, start_time=start_time, end_time=end_time
         )
-        for match in tqdm(match_id_list.keys()):
-            match_info_dict = self.get_match_info(match_id=match)
-            match_info = self.parse_match_info(match_info=match_info_dict)
-            result.append(match_info)
+        for match_index, match in tqdm(enumerate(match_id_list.keys())):
+            try:
+                match_info_dict = self.get_match_info(match_index=match_index, match_id=match)
+                match_info = self.parse_match_info(match_info=match_info_dict)
+                result.append(match_info)
+            except:
+                pass
         return result

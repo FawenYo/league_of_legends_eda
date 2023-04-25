@@ -39,6 +39,7 @@ class Player:
 
 @dataclass
 class ParticipantInfo:
+    summoner_name: str
     ## Champion info
     champion: str
     level: int
@@ -79,8 +80,6 @@ class ParticipantInfo:
     gold: int
     total_minions_killed: int
     neutral_minions_killed: int
-    total_allied_jungle_minions_killed: int
-    total_enemy_jungle_minions_killed: int
     ## Other
     turret_kills: int
     turret_takedowns: int
@@ -118,6 +117,7 @@ class ParticipantInfo:
 class MatchInfo:
     data: dict[str, str | int | bool | dict[str, str]]
     match_id: str = field(init=False)
+    game_mode: str = field(init=False)
     game_start_time: int = field(init=False)
     game_duration: int = field(init=False)
     game_end_time: str = field(init=False)
@@ -182,22 +182,23 @@ class MatchInfo:
     #############################
     # Champion info - Blue team #
     #############################
-    tema_blue_top: ParticipantInfo = field(init=False)
-    tema_blue_jungle: ParticipantInfo = field(init=False)
-    tema_blue_mid: ParticipantInfo = field(init=False)
-    tema_blue_adc: ParticipantInfo = field(init=False)
-    tema_blue_support: ParticipantInfo = field(init=False)
+    team_blue_top: ParticipantInfo = field(init=False)
+    team_blue_jungle: ParticipantInfo = field(init=False)
+    team_blue_mid: ParticipantInfo = field(init=False)
+    team_blue_adc: ParticipantInfo = field(init=False)
+    team_blue_support: ParticipantInfo = field(init=False)
     ############################
     # Champion info - Red team #
     ############################
-    tema_red_top: ParticipantInfo = field(init=False)
-    tema_red_jungle: ParticipantInfo = field(init=False)
-    tema_red_mid: ParticipantInfo = field(init=False)
-    tema_red_adc: ParticipantInfo = field(init=False)
-    tema_red_support: ParticipantInfo = field(init=False)
+    team_red_top: ParticipantInfo = field(init=False)
+    team_red_jungle: ParticipantInfo = field(init=False)
+    team_red_mid: ParticipantInfo = field(init=False)
+    team_red_adc: ParticipantInfo = field(init=False)
+    team_red_support: ParticipantInfo = field(init=False)
 
     def __post_init__(self):
         self.match_id = self.data["metadata"]["matchId"]
+        self.game_mode = self.data["info"]["gameMode"]
         self.game_start_time = self.data["info"]["gameStartTimestamp"]
         self.game_duration = self.data["info"]["gameDuration"]
         self.game_end_time = self.data["info"]["gameEndTimestamp"]
@@ -209,11 +210,18 @@ class MatchInfo:
             # Blue team
             if team["teamId"] == 100:
                 # Bans
-                self.team_blue_ban_1 = team["bans"][0]["championId"]
-                self.team_blue_ban_2 = team["bans"][1]["championId"]
-                self.team_blue_ban_3 = team["bans"][2]["championId"]
-                self.team_blue_ban_4 = team["bans"][3]["championId"]
-                self.team_blue_ban_5 = team["bans"][4]["championId"]
+                if len(team["bans"]) == 0:
+                    self.team_blue_ban_1 = ""
+                    self.team_blue_ban_2 = ""
+                    self.team_blue_ban_3 = ""
+                    self.team_blue_ban_4 = ""
+                    self.team_blue_ban_5 = ""
+                else:
+                    self.team_blue_ban_1 = team["bans"][0]["championId"]
+                    self.team_blue_ban_2 = team["bans"][1]["championId"]
+                    self.team_blue_ban_3 = team["bans"][2]["championId"]
+                    self.team_blue_ban_4 = team["bans"][3]["championId"]
+                    self.team_blue_ban_5 = team["bans"][4]["championId"]
                 # Baron
                 self.team_blue_baron_first = team["objectives"]["baron"]["first"]
                 self.team_blue_baron_kills = team["objectives"]["baron"]["kills"]
@@ -241,16 +249,23 @@ class MatchInfo:
                 self.team_blue_tower_first = team["objectives"]["tower"]["first"]
                 self.team_blue_tower_kills = team["objectives"]["tower"]["kills"]
                 # Win
-                if team["objectives"]["win"]:
+                if team["win"]:
                     self.win_team = "Blue"
             # Red team
             else:
                 # Bans
-                self.team_red_ban_1 = team["bans"][0]["championId"]
-                self.team_red_ban_2 = team["bans"][1]["championId"]
-                self.team_red_ban_3 = team["bans"][2]["championId"]
-                self.team_red_ban_4 = team["bans"][3]["championId"]
-                self.team_red_ban_5 = team["bans"][4]["championId"]
+                if len(team["bans"]) == 0:
+                    self.team_red_ban_1 = ""
+                    self.team_red_ban_2 = ""
+                    self.team_red_ban_3 = ""
+                    self.team_red_ban_4 = ""
+                    self.team_red_ban_5 = ""
+                else:
+                    self.team_red_ban_1 = team["bans"][0]["championId"]
+                    self.team_red_ban_2 = team["bans"][1]["championId"]
+                    self.team_red_ban_3 = team["bans"][2]["championId"]
+                    self.team_red_ban_4 = team["bans"][3]["championId"]
+                    self.team_red_ban_5 = team["bans"][4]["championId"]
                 # Baron
                 self.team_red_baron_first = team["objectives"]["baron"]["first"]
                 self.team_red_baron_kills = team["objectives"]["baron"]["kills"]
@@ -274,62 +289,47 @@ class MatchInfo:
                 self.team_red_tower_first = team["objectives"]["tower"]["first"]
                 self.team_red_tower_kills = team["objectives"]["tower"]["kills"]
                 # Win
-                if team["objectives"]["win"]:
+                if team["win"]:
                     self.win_team = "Red"
 
         ################
         # Participants #
         ################
-        for participant in self.data["info"]["participants"]:
-            # Blue team
-            if participant["teamId"] == 100:
-                # Top
-                if participant["teamPosition"] == "TOP":
-                    self.tema_blue_top = self.create_participants(participant)
-                # Jungle
-                elif participant["teamPosition"] == "JUNGLE":
-                    self.tema_blue_jungle = self.create_participants(participant)
-                # Mid
-                elif participant["teamPosition"] == "MIDDLE":
-                    self.tema_blue_mid = self.create_participants(participant)
-                # ADC
-                elif (
-                    participant["teamPosition"] == "BOTTOM"
-                    and participant["role"] == "SOLO"
-                ):
-                    self.tema_blue_adc = self.create_participants(participant)
-                # Support
-                elif (
-                    participant["teamPosition"] == "BOTTOM"
-                    and participant["role"] == "UTILITY"
-                ):
-                    self.tema_blue_support = self.create_participants(participant)
-            # Red team
-            else:
-                # Top
-                if participant["teamPosition"] == "TOP":
-                    self.tema_red_top = self.create_participants(participant)
-                # Jungle
-                elif participant["teamPosition"] == "JUNGLE":
-                    self.tema_red_jungle = self.create_participants(participant)
-                # Mid
-                elif participant["teamPosition"] == "MIDDLE":
-                    self.tema_red_mid = self.create_participants(participant)
-                # ADC
-                elif (
-                    participant["teamPosition"] == "BOTTOM"
-                    and participant["role"] == "SOLO"
-                ):
-                    self.tema_red_adc = self.create_participants(participant)
-                # Support
-                elif (
-                    participant["teamPosition"] == "BOTTOM"
-                    and participant["role"] == "UTILITY"
-                ):
-                    self.tema_red_support = self.create_participants(participant)
+        for participant_index, participant in enumerate(self.data["info"]["participants"]):
+            # Blue team - Top
+            if participant_index == 0:
+                self.team_blue_top = self.create_participants(participant)
+            # Blue team - Jungle
+            elif participant_index == 1:
+                self.team_blue_jungle = self.create_participants(participant)
+            # Blue team - Mid
+            elif participant_index == 2:
+                self.team_blue_mid = self.create_participants(participant)
+            # Blue team - ADC
+            elif participant_index == 3:
+                self.team_blue_adc = self.create_participants(participant)
+            # Blue team - Support
+            elif participant_index == 4:
+                self.team_blue_support = self.create_participants(participant)
+            # Red team - Top
+            elif participant_index == 5:
+                self.team_red_top = self.create_participants(participant)
+            # Red team - Jungle
+            elif participant_index == 6:
+                self.team_red_jungle = self.create_participants(participant)
+            # Red team - Mid
+            elif participant_index == 7:
+                self.team_red_mid = self.create_participants(participant)
+            # Red team - ADC
+            elif participant_index == 8:
+                self.team_red_adc = self.create_participants(participant)
+            # Red team - Support
+            elif participant_index == 9:
+                self.team_red_support = self.create_participants(participant)
 
     def create_participants(self, participant):
         return ParticipantInfo(
+            summoner_name=participant["summonerName"],
             champion=participant["championName"],
             level=participant["champLevel"],
             experience=participant["champExperience"],
@@ -356,7 +356,7 @@ class MatchInfo:
             true_damage_taken=participant["trueDamageTaken"],
             damage_self_mitigated=participant["damageSelfMitigated"],
             total_shielded_on_teammate=participant["totalDamageShieldedOnTeammates"],
-            total_heal_on_teammate=participant["totalHealOnTeammates"],
+            total_heal_on_teammate=participant["totalHealsOnTeammates"],
             vision_score=participant["visionScore"],
             wards_placed=participant["wardsPlaced"],
             wards_killed=participant["wardsKilled"],
@@ -364,12 +364,6 @@ class MatchInfo:
             gold=participant["goldEarned"],
             total_minions_killed=participant["totalMinionsKilled"],
             neutral_minions_killed=participant["neutralMinionsKilled"],
-            total_allied_jungle_minions_killed=participant[
-                "totalAllyJungleMinionsKilled"
-            ],
-            total_enemy_jungle_minions_killed=participant[
-                "totalEnemyJungleMinionsKilled"
-            ],
             turret_kills=participant["turretKills"],
             turret_takedowns=participant["turretTakedowns"],
             turrent_lost=participant["turretsLost"],
